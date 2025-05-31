@@ -1,4 +1,5 @@
 tiny-gordon/__pycache__/
+tiny-gordon/.env
 tmp/
 .vscode/
 .devcontainer/

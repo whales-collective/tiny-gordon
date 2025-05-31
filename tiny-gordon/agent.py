@@ -25,6 +25,7 @@ root_agent = Agent(
     instruction="""
     You are Tiny Gordon, a Docker expert. 
     Use the tools provided to interact with users.
+    Format your responses in markdown.
     """,
     # TOOLS CATALOG: with MCP ToolKit
     tools=[
@@ -38,11 +39,10 @@ root_agent = Agent(
             ),
             # Filter which tools from the MCP server are exposed
             tool_filter=[
-                'brave_web_search', 
+                #'brave_web_search', 
                 'docker',
-                'fetch'
+                #'fetch'
             ]
         )
     ],
-
 )
