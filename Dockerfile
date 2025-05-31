@@ -1,6 +1,19 @@
+# Build the MCP Server
+FROM golang:1.24.0-alpine AS builder
+WORKDIR /app
+
+COPY . .
+RUN <<EOF
+cd talk-to-moby
+go mod tidy 
+go build
+EOF
+
 FROM python:3.10.12-slim
 
 WORKDIR /app
+
+COPY --from=builder /app/talk-to-moby/talk-to-moby ./mcp-talk-to-moby
 
 # ------------------------------------
 # Install Socat to use MCP Toolkit
@@ -12,11 +25,12 @@ apt-get clean
 rm -rf /var/lib/apt/lists/*
 EOF
 
+
 COPY requirements.txt .
 
 RUN pip install -r requirements.txt
 
-COPY . .
+COPY /tiny-gordon ./tiny-gordon 
 
 EXPOSE 8000
 

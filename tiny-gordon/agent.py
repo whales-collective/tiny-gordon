@@ -52,39 +52,44 @@ embeddings = LiteLLMEmbeddingWrapper()
 vector_store = InMemoryVectorStore(embedding=embeddings)
 
 
-print("🟠 List of the documents:")
-# Loop through docs and create embeddings
-inputs_outputs = []
-
-for document in docker_data:
-
-    input_val = document.get('input', '') or ''
-    output_val = document.get('output', '') or ''
-    
-    element = f"input: {input_val}\noutput: {output_val}"
-    print(element)
-    print("-" * 50)  # separator
-
-    inputs_outputs.append(element)
-
-
-# DOCUMENTS: Add documents: convert star_trek_docs to Document objects
-documents = [Document(page_content=text, metadata={}) for text in inputs_outputs]
-
-# DATA: you can add them to the vector store
-vector_store.add_documents(documents=documents)
-
-print("🟢 Vectors ready")
 
 # NOTE: this triggered at every request to the agent
 def on_request(callback_context: CallbackContext, llm_request: LlmRequest) -> Optional[LlmResponse]:
     print("⚡️ Request received")
     return None
 
-# TOOL:
-def look_at_internal_db(question: str):
+def generate_embeddings() -> str:
     """
-    Use the entire user question to search for similarities.
+    Generate embeddings for the documents and add them to the vector store.
+    """
+    print("🟠 Generating embeddings...")
+    # Loop through docs and create embeddings
+    inputs_outputs = []
+
+    for document in docker_data:
+        input_val = document.get('input', '') or ''
+        output_val = document.get('output', '') or ''
+        
+        element = f"input: {input_val}\noutput: {output_val}"
+        print(element)
+        print("-" * 50)  # separator
+        inputs_outputs.append(element)
+
+
+    # DOCUMENTS: Add documents: convert star_trek_docs to Document objects
+    documents = [Document(page_content=text, metadata={}) for text in inputs_outputs]
+
+    # DATA: you can add them to the vector store
+    vector_store.add_documents(documents=documents)
+
+    print("🟢 Embeddings generated and stored in vector_store.")
+
+    return "Embeddings generated and stored in vector_store."
+
+# TOOL:
+def look_at_internal_db(question: str) -> list[Document]:
+    """
+    Look at the internal database for similarities with the user's question.
     Args:
         question (str): The full question asked by the user, unmodified.
     Returns:
@@ -116,23 +121,35 @@ root_agent = Agent(
     instruction="""
     You are Tiny Gordon, a Docker expert. 
     Use the tools provided to interact with users and give them the best answer.
+
+    To generate embeddings, use the 'generate_embeddings' tool.
     
-    First use the 'look_at_internal_db' tool with the complete user question as the parameter.
+    To search information about docker use the 'look_at_internal_db' tool with the complete user question as the parameter.
     If the 'look_at_internal_db' tool returns content, use that content to make the answer.
     
     Example: 
     If the user says 'give me the list of running containers', 
     call look_at_internal_db('give me the list of running containers').
 
-    Then use the complete user question as the parameter of the 'brave_web_search' tool.
-    If the 'brave_web_search' tool returns results, use that content to make the answer.
-    Always display the source of the information in the answer.
+    to execute commands related to docker, use these tools:
+    - 'moby_running_containers': to list running containers
+    - 'moby_running_all_containers': to list all containers
+    - 'moby_list_all_images': to list all images
 
-    Format your responses in markdown, only in english.
+    If the user asks for a web search, use the 'brave_web_search' tool.
+
+    Format your responses in markdown.
+    Use only Latin characters. Do not use Chinese, Japanese, or Korean characters.
+
+    Use only the information provided above to answer. 
+    Do not use any external knowledge or information from your training data. 
+    If the answer cannot be found in the provided data, reply ‘I don’t know.’
+
     """,
     # TOOLS CATALOG: with MCP ToolKit
     tools=[
         look_at_internal_db,
+        generate_embeddings,
         MCPToolset(
             connection_params=StdioServerParameters(
                 command='socat',
@@ -146,10 +163,20 @@ root_agent = Agent(
                 'brave_web_search', 
                 'fetch'
             ]
-        )
+        ),
+        MCPToolset(
+            connection_params=StdioServerParameters(
+                command='./mcp-talk-to-moby',
+                args=[],
+            ),
+            tool_filter=[
+                'moby_running_containers', 
+                'moby_running_all_containers',
+                'moby_list_all_images',
+            ]
+        ),        
     ],
     before_model_callback= on_request,
 
 )
 
-    

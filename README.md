@@ -33,10 +33,13 @@ docker compose --file compose.linux.yml up --build
 Try the following sentences:
 ```raw
 - What is your name?
+- Generate embeddings *(mandatory if you want to query the knowledge base)*
+- Look in your database: how to publish an image on Docker Hub
 - How to get the list of the running containers?
 - Can you check in the docker documentation?
 - ...
 ```
+
 
 ## Using the API
 

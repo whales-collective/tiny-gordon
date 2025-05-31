@@ -13,6 +13,8 @@ services:
       - MODEL_RUNNER_MODEL=${MODEL_RUNNER_MODEL}
       - MODEL_RUNNER_EMBEDDING_MODEL=${MODEL_RUNNER_EMBEDDING_MODEL}
     command: ["adk", "web", "--host", "0.0.0.0", "--port", "8000"]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - download-model
       - download-embedding-model
@@ -28,6 +30,8 @@ services:
       - MODEL_RUNNER_MODEL=${MODEL_RUNNER_MODEL}
       - MODEL_RUNNER_EMBEDDING_MODEL=${MODEL_RUNNER_EMBEDDING_MODEL}
     command: ["adk", "api_server", "--host", "0.0.0.0", "--port", "8000"]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - download-model
       - download-embedding-model

@@ -23,7 +23,11 @@
 				"anseki.vscode-color",
 				"JeronimoEkerdt.color-picker-universal",
 				"hashicorp.hcl",
-				"ms-python.python"
+				"ms-python.python",
+
+				"golang.go",
+				"tamasfe.even-better-toml",
+				"aaron-bond.better-comments",
 			]
 		}
 	},

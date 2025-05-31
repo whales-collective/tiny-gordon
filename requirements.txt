@@ -3,3 +3,5 @@ litellm
 google-adk
 langchain-core
 langchain-openai
+langchain-chroma 
+
