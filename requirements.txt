@@ -1,0 +1,5 @@
+# This file is used for the dockerisation of the agent
+litellm
+google-adk
+langchain-core
+langchain-openai
