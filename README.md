@@ -7,10 +7,8 @@ Tiny Gordon is an AI agent built in a flash using Docker Model Runner, Docker Co
 ## Requirements
 
 - Docker Desktop + MCP Toolkit extension
-- Install the Docker MCP server
-- Optional:
-  - Install the Brave MCP server (you need an API key - there is a free plan: https://brave.com/search/api/)
-  - Install the Fetch MCP server
+- Install the Brave MCP server (you need an API key - there is a free plan: https://brave.com/search/api/)
+- Install the Fetch MCP server - *[optional]*
 
 ## Start all the Tiny Gordon Agent
 
@@ -35,9 +33,8 @@ docker compose --file compose.linux.yml up --build
 Try the following sentences:
 ```raw
 - What is your name?
-- Give me the list of the running containers?
-- Pull the Redis 8 image
-- Give me the list of the Docker images
+- How to get the list of the running containers?
+- Can you check in the docker documentation?
 - ...
 ```
 
@@ -78,7 +75,7 @@ curl -X POST http://localhost:9000/run \
     "newMessage": {
         "role": "user",
         "parts": [{
-            "text": "Give me the list of the running docker containers"
+            "text": "How to get the list of the running docker containers"
         }]
     }
 }' | jq '.'

@@ -5,14 +5,17 @@ services:
     build: 
       context: .
       dockerfile: Dockerfile
+
     ports:
       - 8000:8000
     environment:
       - DMR_BASE_URL=${DMR_BASE_URL}
       - MODEL_RUNNER_MODEL=${MODEL_RUNNER_MODEL}
+      - MODEL_RUNNER_EMBEDDING_MODEL=${MODEL_RUNNER_EMBEDDING_MODEL}
     command: ["adk", "web", "--host", "0.0.0.0", "--port", "8000"]
     depends_on:
       - download-model
+      - download-embedding-model
 
   tiny-gordon-api:
     build: 
@@ -23,11 +26,20 @@ services:
     environment:
       - DMR_BASE_URL=${DMR_BASE_URL}
       - MODEL_RUNNER_MODEL=${MODEL_RUNNER_MODEL}
+      - MODEL_RUNNER_EMBEDDING_MODEL=${MODEL_RUNNER_EMBEDDING_MODEL}
     command: ["adk", "api_server", "--host", "0.0.0.0", "--port", "8000"]
     depends_on:
       - download-model
+      - download-embedding-model
+
 
   download-model:
+    provider:
+      type: model
+      options:
+        model: ${MODEL_RUNNER_MODEL}
+
+  download-embedding-model:
     provider:
       type: model
       options:
