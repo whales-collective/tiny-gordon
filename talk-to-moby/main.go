@@ -21,14 +21,14 @@ func main() {
 
 	// Add a tool
 	mobyRunningContainers := mcp.NewTool("moby_running_containers",
-		mcp.WithDescription("display the list of running containers on the host"),
+		mcp.WithDescription("use docker to display the list of running containers on the host"),
 	)
 	mobyRunningAllContainers := mcp.NewTool("moby_running_all_containers",
-		mcp.WithDescription("display the list of all containers on the host"),
+		mcp.WithDescription("use docker to display the list of all containers on the host"),
 	)
 
 	mobyListAllImages := mcp.NewTool("moby_list_all_images",
-		mcp.WithDescription("display the list of all images on the host"),
+		mcp.WithDescription("use docker to display the list of all images on the host"),
 	)
 
 	/*

@@ -47,4 +47,24 @@ services:
     provider:
       type: model
       options:
-        model: ${MODEL_RUNNER_MODEL}
+        model: ${MODEL_RUNNER_EMBEDDING_MODEL}
+
+  redis-server:
+    image: redis:8.0.0-alpine3.21
+    environment: 
+      - REDIS_ARGS=--save 30 1
+      # snapshot
+    ports:
+      - 6379:6379
+    volumes:
+      - ./data:/data
+      #- ${LOCAL_WORKSPACE_FOLDER}/data:/data
+
+  data-loader:
+    build: 
+      context: ./data-loader
+      dockerfile: Dockerfile
+    environment:
+      - DMR_BASE_URL=${DMR_BASE_URL}
+      - MODEL_RUNNER_EMBEDDING_MODEL=${MODEL_RUNNER_EMBEDDING_MODEL}
+

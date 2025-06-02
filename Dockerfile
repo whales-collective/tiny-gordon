@@ -9,12 +9,20 @@ go mod tidy
 go build
 EOF
 
+RUN <<EOF
+cd similarity-search
+go mod tidy 
+go build
+EOF
+
+
+
 FROM python:3.10.12-slim
 
 WORKDIR /app
 
 COPY --from=builder /app/talk-to-moby/talk-to-moby ./mcp-talk-to-moby
-
+COPY --from=builder /app/similarity-search/similarity-search ./mcp-similarity-search
 # ------------------------------------
 # Install Socat to use MCP Toolkit
 # ------------------------------------
