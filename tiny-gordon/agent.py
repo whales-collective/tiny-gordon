@@ -18,6 +18,7 @@ os.environ["OPENAI_API_BASE"] = f"{os.environ.get('DMR_BASE_URL')}/engines/llama
 
 
 print("🟡 Initialize...")
+print(f"🤖 MODEL_RUNNER_MODEL: {os.environ.get('MODEL_RUNNER_MODEL')}")
 
 
 # NOTE: this triggered at every request to the agent
