@@ -88,3 +88,8 @@ root_agent = Agent(
 
 )
 
+""" QUESTION:
+How to use another agent to generate an answer from the result of the tool?
+Check if there is a call back for this.
+Have a look to the examples here: https://github.com/hawaiian-pizza-corp/we-are-legion
+"""
