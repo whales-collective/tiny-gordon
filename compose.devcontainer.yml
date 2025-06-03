@@ -1,4 +1,4 @@
-# docker compose --file compose.linux.yml up --build
+# docker compose --file compose.devcontainer.yml up --build
 services:
 
   tiny-gordon:
@@ -65,8 +65,8 @@ services:
     ports:
       - 6379:6379
     volumes:
-      - ./data:/data
-      #- ${LOCAL_WORKSPACE_FOLDER}/data:/data
+      #- ./data:/data
+      - ${LOCAL_WORKSPACE_FOLDER}/data:/data
 
   data-loader:
     profiles: ["init"]
@@ -89,3 +89,4 @@ services:
       {"from": "${MODEL_RUNNER_EMBEDDING_MODEL}"}
       EOF
       '
+      

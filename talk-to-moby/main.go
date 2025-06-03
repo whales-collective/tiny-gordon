@@ -20,26 +20,16 @@ func main() {
 	)
 
 	// Add a tool
-	mobyRunningContainers := mcp.NewTool("moby_running_containers",
-		mcp.WithDescription("display the list of running containers on the host"),
+	mobyRunningContainers := mcp.NewTool("display_running_containers",
+		mcp.WithDescription("use docker to display the list of running containers on the host"),
 	)
-	mobyRunningAllContainers := mcp.NewTool("moby_running_all_containers",
-		mcp.WithDescription("display the list of all containers on the host"),
-	)
-
-	mobyListAllImages := mcp.NewTool("moby_list_all_images",
-		mcp.WithDescription("display the list of all images on the host"),
+	mobyRunningAllContainers := mcp.NewTool("display_running_all_containers",
+		mcp.WithDescription("use docker to display the list of all containers on the host"),
 	)
 
-	/*
-		mobyRunningContainers := mcp.NewTool("moby_running_containers",
-			mcp.WithDescription("display the list of running containers on the host"),
-			mcp.WithString("url",
-				mcp.Required(),
-				mcp.Description("url of the webpage to fetch"),
-			),
-		)
-	*/
+	mobyListAllImages := mcp.NewTool("display_list_all_images",
+		mcp.WithDescription("use docker to display the list of all images on the host"),
+	)
 
 	// Add a tool handler
 	s.AddTool(mobyRunningContainers, mobyRunningContainersHandler)
