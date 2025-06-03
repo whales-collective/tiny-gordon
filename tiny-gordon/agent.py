@@ -10,12 +10,6 @@ from typing import Optional, List
 from google.genai import types
 
 
-#from litellm import embedding
-#from langchain_core.vectorstores import InMemoryVectorStore
-#from langchain_core.embeddings import Embeddings
-#from langchain_core.documents import Document
-
-
 from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, StdioServerParameters
 
 # SETTINGS: needed for the agent to run
@@ -30,7 +24,6 @@ print("🟡 Initialize...")
 def on_request(callback_context: CallbackContext, llm_request: LlmRequest) -> Optional[LlmResponse]:
     print("⚡️ Request received")
     return None
-
 
 
 # AGENT:
@@ -48,12 +41,12 @@ root_agent = Agent(
     ),
     instruction="""
     You are Tiny Gordon, a Docker expert. 
-    Use the tools provided to interact with users and give them the best answer.
- 
+    Use the tools provided to interact with users and give them the best answer. 
     """,
-    # TOOLS CATALOG: with MCP ToolKit
+    
     tools=[
         MCPToolset(
+            # TOOLS CATALOG: with MCP ToolKit
             connection_params=StdioServerParameters(
                 command='socat',
                 args=[
@@ -64,16 +57,20 @@ root_agent = Agent(
             # Filter which tools from the MCP server are exposed
             tool_filter=[
                 'brave_web_search', 
-                #'fetch'
             ]
         ),
         MCPToolset(
             connection_params=StdioServerParameters(
                 command='./mcp-similarity-search',
-                args=[],
+                args=[
+                    "http://model-runner.docker.internal",
+                    "ai/mxbai-embed-large:latest",
+                    "3",
+                ],
+                # 3 is the max number of similar documents to return
             ),
             tool_filter=[
-                'docker_command', 
+                'question_about_something', 
             ]
         ),  
         #MCPToolset(
@@ -82,14 +79,12 @@ root_agent = Agent(
         #        args=[],
         #    ),
         #    tool_filter=[
-        #        'moby_running_containers', 
-        #        'moby_running_all_containers',
-        #        'moby_list_all_images',
+        #        'display_running_containers', 
         #    ]
         #),          
          
     ],
-    before_model_callback= on_request,
+    #before_model_callback= on_request,
 
 )
 

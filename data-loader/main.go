@@ -186,13 +186,18 @@ func InitializeRedisAndIndex(ctx context.Context) (*redis.Client, error) {
 		Protocol: 2,
 	})
 
-	rdb.FTDropIndexWithArgs(ctx,
-		"vector_idx",
-		&redis.FTDropIndexOptions{
-			DeleteDocs: true,
-		},
-	)
+
+
 	/*
+
+		rdb.FTDropIndexWithArgs(ctx,
+			"vector_idx",
+			&redis.FTDropIndexOptions{
+				DeleteDocs: true,
+			},
+		)
+
+
 		Next, create the index.
 		The schema in the example below specifies hash objects for storage and includes three fields:
 		 - the text content to index,

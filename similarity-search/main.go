@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"math"
+	"os"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
@@ -14,9 +15,23 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// MODEL_RUNNER_BASE_URL=http://localhost:12434 go run main.go
-func main() {
+type Config struct {
+	BaseURL        string
+	EmbeddingModel string
+	MaxResults     string
+}
 
+var config Config
+
+func main() {
+	args := os.Args[1:]
+	if len(args) < 2 {
+		// TODO: handle error more gracefully
+	}
+	// initialize config
+	config.BaseURL = args[0]
+	config.EmbeddingModel = args[1]
+	config.MaxResults = args[2]
 	// Create MCP server
 	s := server.NewMCPServer(
 		"docker-search",
@@ -24,10 +39,8 @@ func main() {
 	)
 
 	// Add a tool
-	searchInDoc := mcp.NewTool("docker_command",
-		mcp.WithDescription(`Perform a similarity search between the user question and the documents in the knowledge base. 
-		The knowledge base is created from the documents.
-		`),
+	searchInDoc := mcp.NewTool("question_about_something",
+		mcp.WithDescription(`Find an answer in the internal database.`),
 		mcp.WithString("question",
 			mcp.Required(),
 			mcp.Description("Search question"),
@@ -38,6 +51,7 @@ func main() {
 	// Start the stdio server
 	if err := server.ServeStdio(s); err != nil {
 		fmt.Printf("❌ Failed to start server: %v\n", err)
+		// TODO: handle error more gracefully
 		return
 	}
 
@@ -49,10 +63,8 @@ func searchInDocHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.
 	question := args["question"].(string)
 
 	// Docker Model Runner Chat base URL
-	//llmURL := os.Getenv("DMR_BASE_URL") + "/engines/llama.cpp/v1/"
-	llmURL := "http://model-runner.docker.internal/engines/llama.cpp/v1/"
-	//embeddingsModel := os.Getenv("MODEL_RUNNER_EMBEDDING_MODEL")
-	embeddingsModel := "ai/mxbai-embed-large:latest"
+	llmURL := config.BaseURL + "/engines/llama.cpp/v1/"
+	embeddingsModel := config.EmbeddingModel
 
 	client := openai.NewClient(
 		option.WithBaseURL(llmURL),
@@ -65,7 +77,7 @@ func searchInDocHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.
 	// -------------------------------------------------
 	rdb, err := InitializeRedis(ctx)
 	if err != nil {
-		return mcp.NewToolResultError("🔴🔴🔴: " + err.Error()), nil
+		return mcp.NewToolResultError(err.Error()), nil
 	}
 
 	// USER QUESTION:
@@ -75,7 +87,6 @@ func searchInDocHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.
 	// Generate embeddings from user question
 	// -------------------------------------------------
 	// EMBEDDINGS...
-	//fmt.Println("⏳ Creating embeddings from user question...")
 
 	embeddingsFromUserQuestion, err := client.Embeddings.New(ctx, openai.EmbeddingNewParams{
 		Input: openai.EmbeddingNewParamsInputUnion{
@@ -85,10 +96,8 @@ func searchInDocHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.
 	})
 
 	if err != nil {
-		return mcp.NewToolResultError("🔴: " + err.Error()), nil
+		return mcp.NewToolResultError(err.Error()), nil
 	}
-
-	//fmt.Println("✋ embeddings from the user question:\n", embeddingsFromUserQuestion.Data[0].Embedding)
 
 	// convert the embedding to a []float32
 	embedding := make([]float32, len(embeddingsFromUserQuestion.Data[0].Embedding))
@@ -100,10 +109,9 @@ func searchInDocHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.
 
 	// SIMILARITY SEARCH:
 	// Search for similar documents in Redis
-	//fmt.Println("⏳ Searching for similar documents in Redis...")
 	results, err := rdb.FTSearchWithArgs(ctx,
 		"vector_idx",
-		"*=>[KNN 5 @embedding $vec AS vector_distance]",
+		"*=>[KNN "+config.MaxResults+" @embedding $vec AS vector_distance]",
 		&redis.FTSearchOptions{
 			Return: []redis.FTSearchReturn{
 				{FieldName: "vector_distance"},
@@ -117,10 +125,8 @@ func searchInDocHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.
 	).Result()
 
 	if err != nil {
-		return mcp.NewToolResultError("🟢: " + err.Error()), nil
+		return mcp.NewToolResultError(err.Error()), nil
 	}
-
-	//fmt.Println("🎉 Found", len(results.Docs), "similarities")
 
 	knowledgeBase := ""
 	// CONTEXT: create context from the similarities
@@ -135,7 +141,6 @@ func searchInDocHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.
 	*/
 
 	content := fmt.Sprintf("🎉 Found %d similarities. Query: %s. Content: %s", len(results.Docs), question, knowledgeBase)
-	//fmt.Println("📝 Content:\n", content)
 
 	return mcp.NewToolResultText(content), nil
 }
