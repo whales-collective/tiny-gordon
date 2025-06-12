@@ -46,33 +46,33 @@ root_agent = Agent(
     """,
     
     tools=[
+        # MCPToolset(
+        #     # TOOLS CATALOG: with MCP ToolKit
+        #     connection_params=StdioServerParameters(
+        #         command='socat',
+        #         args=[
+        #             "STDIO",
+        #             "TCP:host.docker.internal:8811",
+        #         ],
+        #     ),
+        #     # Filter which tools from the MCP server are exposed
+        #     tool_filter=[
+        #         'brave_web_search', 
+        #     ]
+        # ),
         MCPToolset(
-            # TOOLS CATALOG: with MCP ToolKit
-            connection_params=StdioServerParameters(
-                command='socat',
-                args=[
-                    "STDIO",
-                    "TCP:host.docker.internal:8811",
-                ],
-            ),
-            # Filter which tools from the MCP server are exposed
-            tool_filter=[
-                'brave_web_search', 
-            ]
-        ),
-        MCPToolset(
-            connection_params=StdioServerParameters(
-                command='./mcp-similarity-search',
-                args=[
-                    "http://model-runner.docker.internal",
-                    "ai/mxbai-embed-large:latest",
-                    "3",
-                ],
-                # 3 is the max number of similar documents to return
-            ),
-            tool_filter=[
-                'question_about_something', 
-            ]
+           connection_params=StdioServerParameters(
+               command='./mcp-similarity-search',
+               args=[
+                   "http://model-runner.docker.internal",
+                   "ai/mxbai-embed-large:latest",
+                   "3",
+               ],
+                #3 is the max number of similar documents to return
+           ),
+           tool_filter=[
+               'question_about_something', 
+           ]
         ),  
         #MCPToolset(
         #    connection_params=StdioServerParameters(

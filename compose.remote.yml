@@ -1,0 +1,91 @@
+# docker compose --file compose.linux.yml up --build
+services:
+
+  tiny-gordon:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+
+    ports:
+      - 8000:8000
+    environment:
+      - DMR_BASE_URL=${DMR_BASE_URL}
+      - MODEL_RUNNER_MODEL=${MODEL_RUNNER_MODEL}
+      - MODEL_RUNNER_EMBEDDING_MODEL=${MODEL_RUNNER_EMBEDDING_MODEL}
+    command: ["adk", "web", "--host", "0.0.0.0", "--port", "8000"]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - download-model
+      - download-embedding-model
+
+
+  tiny-gordon-api:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 9000:8000
+    environment:
+      - DMR_BASE_URL=${DMR_BASE_URL}
+      - MODEL_RUNNER_MODEL=${MODEL_RUNNER_MODEL}
+      - MODEL_RUNNER_EMBEDDING_MODEL=${MODEL_RUNNER_EMBEDDING_MODEL}
+    command: ["adk", "api_server", "--host", "0.0.0.0", "--port", "8000"]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - download-model
+      - download-embedding-model
+
+  download-model:
+    image: curlimages/curl:8.12.1
+    entrypoint: |
+      sh -c '
+      # Download Chat model
+      curl -s "${DMR_BASE_URL}/models/create" -d @- << EOF
+      {"from": "${MODEL_RUNNER_MODEL}"}
+      EOF
+      '
+
+  download-embedding-model:
+    image: curlimages/curl:8.12.1
+    entrypoint: |
+      sh -c '
+      # Download Chat model
+      curl -s "${DMR_BASE_URL}/models/create" -d @- << EOF
+      {"from": "${MODEL_RUNNER_EMBEDDING_MODEL}"}
+      EOF
+      '
+
+  redis-server:
+    image: redis:8.0.0-alpine3.21
+    environment: 
+      - REDIS_ARGS=--save 30 1
+      # snapshot
+    ports:
+      - 6379:6379
+    volumes:
+      - ./data:/data
+      #- ${LOCAL_WORKSPACE_FOLDER}/data:/data
+
+  data-loader:
+    profiles: ["init"]
+    build: 
+      context: ./data-loader
+      dockerfile: Dockerfile
+    environment:
+      - DMR_BASE_URL=${DMR_BASE_URL}
+      - MODEL_RUNNER_EMBEDDING_MODEL=${MODEL_RUNNER_EMBEDDING_MODEL}
+    depends_on:
+      - download-embedding-model-for-data-loader
+
+  download-embedding-model-for-data-loader:
+    profiles: ["init"]
+    image: curlimages/curl:8.12.1
+    entrypoint: |
+      sh -c '
+      # Download Chat model
+      curl -s "${DMR_BASE_URL}/models/create" -d @- << EOF
+      {"from": "${MODEL_RUNNER_EMBEDDING_MODEL}"}
+      EOF
+      '
