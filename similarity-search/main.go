@@ -63,7 +63,8 @@ func searchInDocHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.
 	question := args["question"].(string)
 
 	// Docker Model Runner Chat base URL
-	llmURL := config.BaseURL + "/engines/llama.cpp/v1/"
+	//llmURL := config.BaseURL + "/engines/llama.cpp/v1/"
+	llmURL := config.BaseURL 
 	embeddingsModel := config.EmbeddingModel
 
 	client := openai.NewClient(

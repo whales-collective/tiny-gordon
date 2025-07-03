@@ -12,22 +12,25 @@ import (
 	"github.com/openai/openai-go"
 	"github.com/openai/openai-go/option"
 
-	"github.com/joho/godotenv"
 	"github.com/redis/go-redis/v9"
 )
 
 // MODEL_RUNNER_BASE_URL=http://localhost:12434 go run main.go
 func main() {
 
-	err := godotenv.Load()
-	if err != nil {
-		//log.Fatalln("😡", err)
-		// use the env variables from compose file if not found
-	}
+	// err := godotenv.Load()
+	// if err != nil {
+	// 	log.Fatalln("😡", err)
+	// 	// use the env variables from compose file if not found
+	// }
 
 	// Docker Model Runner Chat base URL
-	llmURL := os.Getenv("DMR_BASE_URL") + "/engines/llama.cpp/v1/"
+	//llmURL := os.Getenv("DMR_BASE_URL") + "/engines/llama.cpp/v1/"
+	llmURL := os.Getenv("MODEL_RUNNER_BASE_URL")
 	embeddingsModel := os.Getenv("MODEL_RUNNER_EMBEDDING_MODEL")
+
+	fmt.Println("🌍 llmURL:", llmURL)
+	fmt.Println("📦 embeddingsModel:", embeddingsModel)
 
 	client := openai.NewClient(
 		option.WithBaseURL(llmURL),
@@ -48,7 +51,6 @@ func main() {
 	for _, content := range contents {
 		chunks = append(chunks, ChunkText(content, 512, 210)...)
 	}
-
 
 	// EMBEDDINGS...
 	// -------------------------------------------------
@@ -89,11 +91,10 @@ func main() {
 			log.Println("😡 Error storing embedding:", err)
 		}
 		//log.Println("✅ Embedding created for chunk:", chunk, embeddingsResponse.Data[0].Embedding)
-		fmt.Println(chunk)
+		fmt.Println("📝", chunk)
 	}
 
 	fmt.Println("✅ All embeddings created and stored in Redis.")
-
 
 }
 
@@ -185,8 +186,6 @@ func InitializeRedisAndIndex(ctx context.Context) (*redis.Client, error) {
 		DB:       0,  // use default DB
 		Protocol: 2,
 	})
-
-
 
 	/*
 

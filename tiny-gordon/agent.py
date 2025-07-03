@@ -13,8 +13,8 @@ from google.genai import types
 from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, StdioServerParameters
 
 # SETTINGS: needed for the agent to run
-os.environ["OPENAI_API_KEY"] = "tada"
-os.environ["OPENAI_API_BASE"] = f"{os.environ.get('DMR_BASE_URL')}/engines/llama.cpp/v1"
+#os.environ["OPENAI_API_KEY"] = "tada"
+#os.environ["OPENAI_API_BASE"] = f"{os.environ.get('DMR_BASE_URL')}/engines/llama.cpp/v1"
 
 
 print("🟡 Initialize...")
@@ -30,7 +30,12 @@ def on_request(callback_context: CallbackContext, llm_request: LlmRequest) -> Op
 # AGENT:
 root_agent = Agent(
     # SMALL LLM:
-    model=LiteLlm(model="openai/" + os.environ.get('MODEL_RUNNER_MODEL')),
+    model=LiteLlm(
+        model=f"openai/{os.environ.get('MODEL_RUNNER_CHAT_MODEL')}",
+        api_base=os.environ.get("MODEL_RUNNER_BASE_URL"),
+        api_key="tada",
+        temperature=0.5,
+    ),    
     generate_content_config=types.GenerateContentConfig(
         temperature=0.0, # More deterministic output
     ),
@@ -46,26 +51,14 @@ root_agent = Agent(
     """,
     
     tools=[
-        # MCPToolset(
-        #     # TOOLS CATALOG: with MCP ToolKit
-        #     connection_params=StdioServerParameters(
-        #         command='socat',
-        #         args=[
-        #             "STDIO",
-        #             "TCP:host.docker.internal:8811",
-        #         ],
-        #     ),
-        #     # Filter which tools from the MCP server are exposed
-        #     tool_filter=[
-        #         'brave_web_search', 
-        #     ]
-        # ),
         MCPToolset(
            connection_params=StdioServerParameters(
                command='./mcp-similarity-search',
                args=[
-                   "http://model-runner.docker.internal",
-                   "ai/mxbai-embed-large:latest",
+                   #"http://model-runner.docker.internal",
+                   os.environ.get("MODEL_RUNNER_BASE_URL"),
+                   #"ai/mxbai-embed-large:latest",
+                   os.environ.get("MODEL_RUNNER_EMBEDDING_MODEL"),
                    "3",
                ],
                 #3 is the max number of similar documents to return
@@ -73,16 +66,7 @@ root_agent = Agent(
            tool_filter=[
                'question_about_something', 
            ]
-        ),  
-        #MCPToolset(
-        #    connection_params=StdioServerParameters(
-        #        command='./mcp-talk-to-moby',
-        #        args=[],
-        #    ),
-        #    tool_filter=[
-        #        'display_running_containers', 
-        #    ]
-        #),          
+        ),     
          
     ],
     #before_model_callback= on_request,
